@@ -1,8 +1,8 @@
-;;; ------------------------------------------------------------
-;;; PHYSICAL CONSTANTS
-;;; ------------------------------------------------------------
-;;; Universal gas constant [J/mol.K]
-(defconstant +rgas+ 8.314)
+(in-package :heat)
 
-;;; Atmospheric pressure [Pa]
-(defconstant +patm+ 1.0133d5)
+
+;;; PHYSICAL CONSTANTS
+
+(defconstant +rgas+ 8.314 "Universal gas constant [J/mol.K]")
+
+(defconstant +patm+ 1.0133d5 "Atmospheric pressure [Pa]")

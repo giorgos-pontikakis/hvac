@@ -1,15 +1,19 @@
-;;; ------------------------------------------------------------
-;;; EMPIRICAL CORRELATIONS
-;;; ------------------------------------------------------------
+(in-package :heat)
+
+
+
+;;; NAMED CORRELATIONS
+;;; Empirical correlations for the characteristics of flow
+
 (defun colebrook (diam re e-rough)
   "Returns the colebrook equation transformed as a function of
    the root of the friction factor f."
-  #'(lambda (rootf)
-      (- (/ 1 rootf)
-	 (* -2
-	    (log (+ (/ 2.51 re rootf)
-		    (/ e-rough 3.7 diam))
-		 10d0)))))
+  #'(lambda (rootff)
+      (- (/ 1 rootff)
+         (* -2
+            (log (+ (/ 2.51 re rootff)
+                    (/ e-rough 3.7 diam))
+                 10d0)))))
 
 (defun haaland (diam re e-rough)
   "Haaland empirical equation for the calculation of the friction
@@ -18,9 +22,9 @@
    ;; (Fanning friction factor) to friction factor f
   (* 4
      (sq (/ 1
-	    (* -3.6 (log (+ (/ 6.9 re)
-			    (expt (/ e-rough diam 3.7) 10/9))
-			 10))))))
+            (* -3.6 (log (+ (/ 6.9 re)
+                            (expt (/ e-rough diam 3.7) 10/9))
+                         10))))))
 
 (defun gnielinski (re pr ff)
   "Gnielinski empirical correlation for the calculation of the
@@ -28,12 +32,12 @@
    turbulent flow in circular tubes."
   (let ((ff/8 (/ ff 8)))
     (/ (* ff/8
-	  (- re 1000)
-	  pr)
+          (- re 1000)
+          pr)
        (+ 1
-	  (* 12.7
-	     (sqrt ff/8)
-	     (- (expt pr 2/3) 1))))))
+          (* 12.7
+             (sqrt ff/8)
+             (- (expt pr 2/3) 1))))))
 
 (defun dittus-boelter (re pr)
   "Dittus-Boelter equation for the calculation of the Nusselt

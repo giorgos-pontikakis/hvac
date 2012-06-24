@@ -8,4 +8,5 @@
                :alexandria
                :lisputils)
   :components ((:file "package")
-               (:file "constants")))
+               (:file "constants")
+               (:file "correlations")))

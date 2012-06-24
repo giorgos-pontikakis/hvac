@@ -1,25 +1,28 @@
-;;; ------------------------------------------------------------
+
+
 ;;; MACROS
-;;; ------------------------------------------------------------
+
 (defmacro provide-slot-default (obj slot &body body)
   "If the slot of object is unbound, set it to a default value
    (which is calculated within the body). This "
   `(unless (slot-boundp ,obj ,slot)
      (setf (slot-value ,obj ,slot)
-	   ,@body)))
+           ,@body)))
 
-;;; ------------------------------------------------------------
+
+
 ;;; PASSAGES
-;;; ------------------------------------------------------------
+
 (defclass passage ()
   ((face      :initarg :face     :reader face)
    (material  :initarg :material :reader material)
    (tem       :initarg :tem      :accessor tem)))
 
 
-;;; ------------------------------------------------------------
+
+
 ;;; BODIES (for external flows)
-;;; ------------------------------------------------------------
+
 (defclass body (passage)
   ())
 
@@ -95,9 +98,10 @@
     (default-af/at obj)))
 
 
-;;; ------------------------------------------------------------
+
+
 ;;; CONDUITS (for internal flows)
-;;; ------------------------------------------------------------
+
 (defclass conduit (passage)
   ((rough :initarg :rough :reader rough)))
 
@@ -107,9 +111,10 @@
 (defclass tube (conduit)
   ())
 
-;;; ------------------------------------------------------------
+
+
 ;;; FACES (shapes for passage cross-sections)
-;;; ------------------------------------------------------------
+
 (defclass face ()
   ((name :initarg :name :reader name)))
 
@@ -121,9 +126,11 @@
    (height :initarg :height :reader height)))
 
 
-;;; ------------------------------------------------------------
+
 ;;; METHODS FOR PASSAGES AND THEIR FACES
-;;; ------------------------------------------------------------
+
+;;; Hydraulic diameter
+
 (defgeneric dhyd (passage-or-face)
   (:documentation "Hydraulic diameter"))
 
@@ -162,7 +169,7 @@
 
 (defmethod circum ((r rectangle))
   (* 2 (+ (width r)
-	  (height r))))
+          (height r))))
 
 ;;; - - - - - - -
 
@@ -172,8 +179,8 @@
   (* 4
      (row-pitch tb)
      (/ (normalized-free-flow-area tb)
-	(+ (normalized-base-area tb)
-	   (normalized-fin-area tb)))))
+        (+ (normalized-base-area tb)
+           (normalized-fin-area tb)))))
 
 ;;; - - - - - - -
 
@@ -191,8 +198,8 @@
 
 (defmethod default-alpha ((tb tubes-bank))
   (let ((a-base (normalized-base-area tb))
-	(a-fin (normalized-fin-area tb))
-	(vol (normalized-volume tb)))
+        (a-fin (normalized-fin-area tb))
+        (vol (normalized-volume tb)))
     (/ (+ a-base a-fin)
        vol)))
 
@@ -203,7 +210,7 @@
 
 (defmethod default-af/at ((tb tubes-bank-continuous-fins))
   (let ((a-base (normalized-base-area tb))
-	(a-fin (normalized-fin-area tb)))
+        (a-fin (normalized-fin-area tb)))
     (/ a-fin (+ a-base a-fin))))
 
 ;;; - - - - - - -
@@ -213,23 +220,23 @@
 
 (defmethod normalized-free-flow-area ((tbank tubes-bank))
   (let* ((st (tube-pitch tbank))
-	 (sl (row-pitch tbank))
-	 (d (dout tbank))
-	 (sd (sqrt (+ (sq sl) (sq (* 0.5 st))))))
+         (sl (row-pitch tbank))
+         (d (dout tbank))
+         (sd (sqrt (+ (sq sl) (sq (* 0.5 st))))))
     (if (< sd (/ (+ st d) 2))
-	(* 2 (- sd d))
-	(- st d))))
+        (* 2 (- sd d))
+        (- st d))))
 
 (defmethod normalized-free-flow-area ((tb tubes-bank-continuous-fins))
   (let* ((st (tube-pitch tb))
-	 (sl (row-pitch tb))
-	 (d (dout tb))
-	 (ft (fin-thick tb))
-	 (fp (fin-pitch tb))
-	 (sd (sqrt (+ (sq sl) (sq (* 0.5 st))))))
+         (sl (row-pitch tb))
+         (d (dout tb))
+         (ft (fin-thick tb))
+         (fp (fin-pitch tb))
+         (sd (sqrt (+ (sq sl) (sq (* 0.5 st))))))
     (if (< sd (/ (+ st d) 2))
-	(* 2 (- sd d (* ft sd (/ 1 fp))))
-	(- st d (* ft st (/ 1 fp))))))
+        (* 2 (- sd d (* ft sd (/ 1 fp))))
+        (- st d (* ft st (/ 1 fp))))))
 
 ;;; - - - - - - -
 
@@ -250,22 +257,22 @@
 
 (defmethod normalized-fin-area ((tb tubes-bank-continuous-fins))
   (let ((st (tube-pitch tb))
-	(sl (row-pitch tb))
-	(d (dout tb))
-	(fp (fin-pitch tb)))
+        (sl (row-pitch tb))
+        (d (dout tb))
+        (fp (fin-pitch tb)))
     (* 2 ;; the fin has two sides!
        (/ 1 fp)
        (- (* st sl)
-	  (* 0.25 pi (sq d))))))
+          (* 0.25 pi (sq d))))))
 
 (defmethod normalized-fin-area ((tb tubes-bank-circular-fins))
   (let ((dtube (dout tb))
-	(dfin (fin-diam tb))
-	(fp (fin-pitch tb)))
+        (dfin (fin-diam tb))
+        (fp (fin-pitch tb)))
     (* 2 ;; the fin has two sides!
        (/ 1 fp)
        (- (* 0.25 pi (sq dfin))
-	  (* 0.25 pi (sq dtube))))))
+          (* 0.25 pi (sq dtube))))))
 
 ;;; - - - - - - -
 
@@ -278,8 +285,8 @@
 
 (defmethod normalized-base-area ((tb tubes-bank-continuous-fins))
   (let ((d (dout tb))
-	(ft (fin-thick tb))
-	(fp (fin-pitch tb)))
+        (ft (fin-thick tb))
+        (fp (fin-pitch tb)))
     (* pi d (- 1 (/ ft fp)))))
 
 ;;; - - - - - - -
@@ -289,7 +296,7 @@
 
 (defmethod normalized-volume ((tb tubes-bank))
   (let ((st (tube-pitch tb))
-	(sl (row-pitch tb)))
+        (sl (row-pitch tb)))
     (* st sl)))
 
 ;;; - - - - - - -
