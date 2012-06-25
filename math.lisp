@@ -1,11 +1,9 @@
-(in-package :heat)
+(in-package :hvac)
 
 
-;;; ------------------------------------------------------------
 ;;; ROOT FINDING
-;;; ------------------------------------------------------------
 
-(defun bisection (func x-neg x-pos x-acc)
+(defun bisection (func x-neg x-pos &optional (x-acc 1d-6))
   (let* ((dx (abs (- x-pos x-neg)))
          (x-mid (* 0.5d0 (+ x-neg x-pos)))
          (f-mid (funcall func x-mid)))
@@ -29,9 +27,7 @@
 
 
 
-;;; ------------------------------------------------------------
 ;;; SMALL BUT USEFUL
-;;; ------------------------------------------------------------
 
 (defun sign (a)
   "Return -1 if a<0, +1 otherwise"
@@ -47,17 +43,22 @@
   "Cube of x"
   (expt x 3))
 
-(defun avg (&rest args)
-  "Average of the arguments."
-  (/ (reduce #'+ args)
-     (length args)))
+(defun sum (sequence)
+  (reduce #'+ sequence))
 
-(defun linear-interp (x1 y1 x2 y2 x)
+(defun avg (sequence)
+  "Average of the arguments."
+  (/ (reduce #'+ sequence)
+     (length sequence)))
+
+(defun linear-interpolation (x1 y1 x2 y2 x)
   "Interpolate linearly between two points"
-  (+ y1
-     (* (/ (- y2 y1)
-           (- x2 x1))
-        (- x x1))))
+  (if (= x1 x2)
+      y1
+      (+ y1
+         (* (/ (- y2 y1)
+               (- x2 x1))
+            (- x x1)))))
 
 (defun deriv (fn x &key (eps 1d-3))
   "Derivative of a function fn at a point x"
@@ -67,9 +68,8 @@
 
 
 
-;;; ----------------------------------------------------------
-;;; UTILITIES FOR MATRICES (2D ARRAYS)
-;;; ----------------------------------------------------------
+;;; UTILITIES FOR MATRICES
+;;; Matrices are represented by 2D arrays
 
 (defun array-num-rows (arr-in)
   "Return the number of rows of a 2D array"
@@ -110,7 +110,7 @@
       (setf (aref arr i j2) (aref arr-in i j1)))))
 
 
-;;; Fundamental operations
+;;; Fundamental matrix operations
 
 (defun mat+ (arr1 arr2)
   "Add two arrays"
@@ -155,54 +155,68 @@
 
 
 
-;;; ------------------------------------------------------------
 ;;; LOOK-UP A VALUE AT A 2D ARRAY
-;;; ------------------------------------------------------------
 
-(defun lookup-at-table (arr2d val &key (x-col 0) (y-col 1))
+(defun lookup (matrix val &key (x-col 0) (y-col 1) (fn #'linear-interpolation))
   (multiple-value-bind (i1 i2 x1 x2)
-      (bracket-value-at-table arr2d val x-col)
-    (linear-interp x1 (aref arr2d i1 y-col)
-                   x2 (aref arr2d i2 y-col) val)))
+      (bracket-value-at-table matrix val x-col)
+    (funcall fn
+             x1 (aref matrix i1 y-col)
+             x2 (aref matrix i2 y-col) val)))
 
-(defun bracket-value-at-table (arr x-target &optional (x-col 0))
-  (let* ((i-min 0)
-         (i-max (1- (array-dimension arr 0)))
-         (x-min (aref arr 0 x-col))
-         (x-max (aref arr i-max x-col)))
-    (if (or (> x-min x-target) (< x-max x-target))
-        (progn
-          (warn "Target value ~A not in table -- returning nearest extremum." x-target)
-          (if (< x-min x-target)
-              (values i-min (1+ i-min) x-min (aref arr (1+ i-min) x-col))
-              (values (1- i-max) i-max (aref arr (1- i-max) x-col) i-max)))
-        (discrete-bisection arr x-col x-target i-min i-max))))
+(defun lookup-lambda (table &key (x-col 0) (y-col 1) (fn #'linear-interpolation))
+  "Returns a function of one argument which wraps the lookup of the argument at a table."
+  #'(lambda (x)
+      (lookup table x :x-col x-col :y-col y-col :fn fn)))
 
-(defun discrete-bisection (arr x-col x-target i-min i-max)
-  (let* ((i (floor (* 0.5 (+ i-max i-min))))
+(defun bracket-value (arr x-target &optional (x-col 0))
+  "Bracket a value in a table represented by a 2D array. The values of the column of
+interest (x-col) are assumed to be sorted."
+  (let* ((i-lo 0)
+         (i-hi (1- (array-dimension arr 0)))
+         (x-lo (aref arr i-lo x-col))
+         (x-hi (aref arr i-hi x-col))
+         (x-min (min x-lo x-hi))
+         (x-max (max x-lo x-hi)))
+    (cond ((< x-target x-min)
+           (warn "Target value ~A lower than minimum value of column ~D." x-target x-col)
+           (let ((i-min (if (= x-lo x-min) i-lo i-hi)))
+             (values i-min i-min x-min x-min)))
+          ((> x-target x-max)
+           (warn "Target value ~A greater than maximum value of column ~D." x-target x-col)
+           (let ((i-max (if (= x-hi x-max) i-hi i-lo)))
+             (values i-max i-max x-max x-max)))
+          (t
+           (discrete-bisection arr x-target x-col i-lo i-hi)))))
+
+(defun discrete-bisection (arr x-target x-col i-left i-right)
+  (let* ((i (floor (* 0.5 (+ i-left i-right))))
          (x-i (aref arr i x-col))
          (x-i-next (aref arr (1+ i) x-col)))
-    (cond ((or (and (< x-i x-target)
-                    (> x-i-next x-target))
-               (= x-i x-target)
-               (= x-i-next x-target))
+    (cond ((and (< x-i x-target)
+                (< x-target x-i-next))
            (values i (1+ i) x-i x-i-next))
+          ((= x-i x-target)
+           (values i i x-i x-i))
+          ((= x-i-next x-target)
+           (values (1+ i) (1+ i) x-i-next x-i-next))
           ((and (< x-i x-target)
                 (< x-i-next x-target))
-           (discrete-bisection arr x-col x-target (1+ i) i-max))
+           (discrete-bisection arr x-target x-col (1+ i) i-right))
           ((> x-i-next x-target)
-           (discrete-bisection arr x-col x-target i-min i)))))
+           (discrete-bisection arr x-target x-col i-left i)))))
 
 
-;;; ------------------------------------------------------------
-;;; ANONYMOUS FUNCTIONS FROM POINTS OF GRAPHS
-;;; ------------------------------------------------------------
 
-(defun lambda-table (table &key (arg-fn #'identity) (val-fn #'identity))
-  #'(lambda (x)
-      (funcall val-fn
-               (lookup-at-table table (funcall arg-fn x)))))
+;; ;;; ------------------------------------------------------------
+;; ;;; ANONYMOUS FUNCTIONS FROM POINTS OF GRAPHS
+;; ;;; ------------------------------------------------------------
 
-(defun lambda-line (x1 y1 x2 y2)
-  #'(lambda (x)
-      (linear-interp x1 y1 x2 y2 x)))
+;; (defun lambda-table (table &key (arg-fn #'identity) (val-fn #'identity))
+;;   #'(lambda (x)
+;;       (funcall val-fn
+;;                (lookup-at-table table (funcall arg-fn x)))))
+
+;; (defun lambda-line (x1 y1 x2 y2)
+;;   #'(lambda (x)
+;;       (linear-interp x1 y1 x2 y2 x)))

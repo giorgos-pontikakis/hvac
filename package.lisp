@@ -1,6 +1,6 @@
 (in-package :cl-user)
 
-(defpackage :heat
+(defpackage :hvac
   (:use "COMMON-LISP"
         "ITERATE"
         "ALEXANDRIA"
