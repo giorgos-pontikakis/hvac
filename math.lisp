@@ -159,7 +159,7 @@
 
 (defun lookup (matrix val &key (x-col 0) (y-col 1) (fn #'linear-interpolation))
   (multiple-value-bind (i1 i2 x1 x2)
-      (bracket-value-at-table matrix val x-col)
+      (bracket-value matrix val x-col)
     (funcall fn
              x1 (aref matrix i1 y-col)
              x2 (aref matrix i2 y-col) val)))
