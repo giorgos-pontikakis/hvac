@@ -4,21 +4,21 @@
 (defparameter *conversion-displacements* (make-hash-table :test 'equal))
 (defparameter *prefixes*
   (make-table '(("E" .  1e+18)
-		("P" .  1e+15)
-		("T" .  1e+12)
-		("G" .  1e+9)
-		("M" .  1e+6)
-		("k" .  1e+3)
-		("h" .  1e+1)
-		("d" .  1e-1)
-		("c" .  1e-2)
-		("m" .  1e-3)
-		("μ" .  1e-6) ;; does this work everywhere?
-		("n" .  1e-9)
-		("p" .  1e-12)
-		("f" .  1e-15)
-		("a" .  1e-18))
-	      :test 'equal))
+                ("P" .  1e+15)
+                ("T" .  1e+12)
+                ("G" .  1e+9)
+                ("M" .  1e+6)
+                ("k" .  1e+3)
+                ("h" .  1e+1)
+                ("d" .  1e-1)
+                ("c" .  1e-2)
+                ("m" .  1e-3)
+                ("μ" .  1e-6) ;; does this work everywhere?
+                ("n" .  1e-9)
+                ("p" .  1e-12)
+                ("f" .  1e-15)
+                ("a" .  1e-18))
+              :test 'equal))
 
 
 ;;; ------------------------------------------------------------
@@ -67,51 +67,51 @@
 
 (defun split-unit (unit)
   (mapcar #'(lambda (prod)
-	      (split-sequence #\. prod))
-	  (split-sequence #\/ unit)))
+              (split-sequence #\. prod))
+          (split-sequence #\/ unit)))
 
 (defun parse-power (unit)
   (let ((num-pos (or (position #\+ unit)
-		     (position #\- unit)
-		     (position-if #'digit-char-p unit))))
+                     (position #\- unit)
+                     (position-if #'digit-char-p unit))))
     (values (subseq unit 0 num-pos)
-	    (if (null num-pos)
-		1
-		(parse-integer (subseq unit num-pos))))))
+            (if (null num-pos)
+                1
+                (parse-integer (subseq unit num-pos))))))
 
 (defun parse-prefix (unit)
   (let ((prefix (subseq unit 0 1))
-	(name (subseq unit 1)))
+        (name (subseq unit 1)))
     (if (and (key-exists-p *prefixes* prefix)
-	     (registered-p name))
-	(values name (entry *prefixes* prefix))
-	(values unit 1))))
+             (registered-p name))
+        (values name (entry *prefixes* prefix))
+        (values unit 1))))
 
 (defun parse-splitted-unit (splitted-unit div-fn mult-fn prefix-power-fn)
   (reduce div-fn
-	  (mapcar #'(lambda (product)
-		      (reduce mult-fn
-			      (mapcar prefix-power-fn product)))
-		  splitted-unit)))
+          (mapcar #'(lambda (product)
+                      (reduce mult-fn
+                              (mapcar prefix-power-fn product)))
+                  splitted-unit)))
 
 (defun parse-dim (unit)
   (parse-splitted-unit (split-unit unit)
-		       #'dim/
-		       #'dim*
-		       #'(lambda (unit)
-			   (mvb (name power) (parse-power unit)
-				(dim-expt (dim (parse-prefix name)) power)))))
+                       #'dim/
+                       #'dim*
+                       #'(lambda (unit)
+                           (mvb (name power) (parse-power unit)
+                                (dim-expt (dim (parse-prefix name)) power)))))
 
 (defun parse-scale (unit)
   (parse-splitted-unit (split-unit unit)
-		       #'/
-		       #'*
-		       #'(lambda (unit)
-			   (mvb (name power) (parse-power unit)
-				(mvb (no-prefix-name prefix-scale) (parse-prefix name)
-				     (expt (* prefix-scale
-					      (scale no-prefix-name))
-					   power))))))
+                       #'/
+                       #'*
+                       #'(lambda (unit)
+                           (mvb (name power) (parse-power unit)
+                                (mvb (no-prefix-name prefix-scale) (parse-prefix name)
+                                     (expt (* prefix-scale
+                                              (scale no-prefix-name))
+                                           power))))))
 
 
 (defun parse-displacement (unit)
@@ -122,33 +122,33 @@
 
 (defun registered-si-name (dim)
   (iter (for i in (key *si-units* dim #'dim-equal))
-	(if (= (scale i) 1)
-	    (return i))))
+        (if (= (scale i) 1)
+            (return i))))
 
 (defun fundamental-si-name (dim)
   (if (null dim)
       nil
       (flet ((make-fundamental-dim (n len)
-	       (let ((dim (make-array len :initial-element 0)))
-		 (setf (aref dim n) 1)
-		 dim)))
-	(let* ((len (length dim))
-	       (lst (iter (for pow in-vector dim)
-			  (for j index-of-sequence dim)
-			  (for fu = (make-fundamental-dim j len))
-			  (if (not (= 0 pow))
-			      (collect (concatenate 'string
-						    (registered-si-name fu)
-						    (if (not (= 1 pow))
-							(write-to-string pow))))))))
-	  (reduce #'(lambda (arg1 arg2)
-		      (concatenate 'string arg1 "." arg2))
-		  lst)))))
+               (let ((dim (make-array len :initial-element 0)))
+                 (setf (aref dim n) 1)
+                 dim)))
+        (let* ((len (length dim))
+               (lst (iter (for pow in-vector dim)
+                          (for j index-of-sequence dim)
+                          (for fu = (make-fundamental-dim j len))
+                          (if (not (= 0 pow))
+                              (collect (concatenate 'string
+                                                    (registered-si-name fu)
+                                                    (if (not (= 1 pow))
+                                                        (write-to-string pow))))))))
+          (reduce #'(lambda (arg1 arg2)
+                      (concatenate 'string arg1 "." arg2))
+                  lst)))))
 
 (defun si-name (unit)
   (let ((dim (parse-dim unit)))
     (or (registered-si-name dim)
-	(fundamental-si-name dim))))
+        (fundamental-si-name dim))))
 
 
 ;;; --- Unit tables ---
@@ -166,19 +166,19 @@
     (destructuring-bind (a b &optional (c 1) (d 0)) sublist
       ;; Check for already registered keys
       (if (registered-p a)
-	  (error "This unit is already defined: ~A" a))
+          (error "This unit is already defined: ~A" a))
       ;; handle dimension tables
       (if (stringp b)
-	  (setf (entry table a) (parse-dim b))
-	  (setf (entry table a) b))
+          (setf (entry table a) (parse-dim b))
+          (setf (entry table a) b))
       ;; handle conversion table
       (if (stringp b)
-	  (setf (entry *conversion-scales* a) (* c (parse-scale b)))
-	  (setf (entry *conversion-scales* a) c))
+          (setf (entry *conversion-scales* a) (* c (parse-scale b)))
+          (setf (entry *conversion-scales* a) c))
       ;; handle displacement table
       (if (stringp b)
-	  (setf (entry *conversion-displacements* a) (+ d (/ (parse-displacement b) c)))
-	  (setf (entry *conversion-displacements* a) d)))))
+          (setf (entry *conversion-displacements* a) (+ d (/ (parse-displacement b) c)))
+          (setf (entry *conversion-displacements* a) d)))))
 
 ;;; ------------------------------------------------------------
 ;;; UNITS DEFINITIONS
@@ -229,21 +229,21 @@
 ;;; ------------------------------------------------------------
 (defun to-si (num unit)
   (values (float (* (+ num
-		       (parse-displacement unit))
-		    (parse-scale unit)))
-	  (si-name unit)))
+                       (parse-displacement unit))
+                    (parse-scale unit)))
+          (si-name unit)))
 
 (defun to-unit (num source-unit target-unit)
   (let ((source-scale (parse-scale source-unit))
-	(source-displ (parse-displacement source-unit))
-	(target-scale (parse-scale target-unit))
-	(target-displ (parse-displacement target-unit)))
+        (source-displ (parse-displacement source-unit))
+        (target-scale (parse-scale target-unit))
+        (target-displ (parse-displacement target-unit)))
     (if (dim-equal (parse-dim source-unit) (parse-dim target-unit))
-	(values (float (- (* (/ source-scale target-scale)
-			     (+ num source-displ))
-			  target-displ))
-		target-unit)
-	(error "Dimensions do not match."))))
+        (values (float (- (* (/ source-scale target-scale)
+                             (+ num source-displ))
+                          target-displ))
+                target-unit)
+        (error "Dimensions do not match."))))
 
 
 ;;; ------------------------------------------------------------
@@ -252,13 +252,13 @@
 (set-macro-character #\] (get-macro-character #\)))
 
 (set-dispatch-macro-character #\# #\[
- #'(lambda (stream char1 char2)
-     (declare (ignore char1 char2))
-     (let ((list (read-delimited-list #\] stream t)))
-       (cond ((endp (cdr list))
-	      (car list))
-	     ((endp (cddr list))
-	      `(to-si ,(first list) ,(second list)))
-	     ((endp (cdddr list))
-	      `(to-unit ,(first list) ,(second list) ,(third list)))
-	     (t nil)))))
+                              #'(lambda (stream char1 char2)
+                                  (declare (ignore char1 char2))
+                                  (let ((list (read-delimited-list #\] stream t)))
+                                    (cond ((endp (cdr list))
+                                           (car list))
+                                          ((endp (cddr list))
+                                           `(to-si ,(first list) ,(second list)))
+                                          ((endp (cdddr list))
+                                           `(to-unit ,(first list) ,(second list) ,(third list)))
+                                          (t nil)))))

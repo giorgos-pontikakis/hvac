@@ -47,55 +47,52 @@
 
 (defclass kays-cf-7.0-5/8j (tubes-bank-circular-fins)
   ()
-  (:default-initargs
-     :dout       (to-si 0.645 "inch")
-     :row-pitch  (to-si 1.35 "inch")
-     :tube-pitch (to-si 1.232 "inch")
-     :dhyd       (to-si 0.0219 "ft")
-     :sigma      0.449
-     :alpha      269
-     :fin-thick  (to-si 0.010 "inch")
-     :fin-pitch  1/276
-     :af/at      0.830
-     :fin-diam   (to-si 1.121 "inch")))
+  (:default-initargs :dout       (to-si 0.645 "inch")
+                     :row-pitch  (to-si 1.35 "inch")
+                     :tube-pitch (to-si 1.232 "inch")
+                     :dhyd       (to-si 0.0219 "ft")
+                     :sigma      0.449
+                     :alpha      269
+                     :fin-thick  (to-si 0.010 "inch")
+                     :fin-pitch  1/276
+                     :af/at      0.830
+                     :fin-diam   (to-si 1.121 "inch")))
 
 (defclass kays-8.0-3/8t (tubes-bank-continuous-fins)
   ()
-  (:default-initargs
-     :dout       (to-si 0.402 "inch")
-     :row-pitch  (to-si 0.866 "inch")
-     :tube-pitch (to-si 1.0 "inch")
-     :dhyd       (to-si 0.01192 "ft")
-     :sigma      0.534
-     :alpha      587
-     :fin-thick  (to-si 0.013 "inch")
-     :fin-pitch  1/315
-     :af/at      0.913))
+  (:default-initargs :dout       (to-si 0.402 "inch")
+                     :row-pitch  (to-si 0.866 "inch")
+                     :tube-pitch (to-si 1.0 "inch")
+                     :dhyd       (to-si 0.01192 "ft")
+                     :sigma      0.534
+                     :alpha      587
+                     :fin-thick  (to-si 0.013 "inch")
+                     :fin-pitch  1/315
+                     :af/at      0.913))
 
 (defclass kays-7.75-5/8t (tubes-bank-continuous-fins)
   ()
-  (:default-initargs
-     :dout       (to-si 0.676 "inch")
-     :row-pitch  (to-si 1.75 "inch")
-     :tube-pitch (to-si 1.50 "inch")
-     :dhyd       (to-si 0.01192 "ft")
-     :sigma      0.481
-     :alpha      554
-     :fin-thick  (to-si 0.016 "inch")
-     :fin-pitch  1/305
-     :af/at      0.950))
+  (:default-initargs :dout       (to-si 0.676 "inch")
+                     :row-pitch  (to-si 1.75 "inch")
+                     :tube-pitch (to-si 1.50 "inch")
+                     :dhyd       (to-si 0.01192 "ft")
+                     :sigma      0.481
+                     :alpha      554
+                     :fin-thick  (to-si 0.016 "inch")
+                     :fin-pitch  1/305
+                     :af/at      0.950))
 
 (defmethod initialize-instance :after ((obj tubes-bank) &key)
   (provide-slot-default obj 'dhyd
-    (default-dhyd obj))
+                        (default-dhyd obj))
   (provide-slot-default obj 'sigma
-    (default-sigma obj))
+                        (default-sigma obj))
   (provide-slot-default obj 'alpha
-    (default-alpha obj)))
+                        (default-alpha obj)))
 
 (defmethod initialize-instance :after ((obj fins-mixin) &key)
   (provide-slot-default obj 'af/at
-    (default-af/at obj)))
+                        (default-af/at obj)))
 
 
 

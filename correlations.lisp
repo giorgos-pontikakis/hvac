@@ -18,8 +18,8 @@
 (defun ff-haaland (diam re e-rough)
   "Haaland empirical equation for the calculation of the friction
    factor for rough tubes."
-   ;; multiplication by 4 converts from friction coefficient C_f
-   ;; (Fanning friction factor) to friction factor f
+  ;; multiplication by 4 converts from friction coefficient C_f
+  ;; (Fanning friction factor) to friction factor f
   (* 4
      (sq (/ 1
             (* -3.6 (log (+ (/ 6.9 re)
