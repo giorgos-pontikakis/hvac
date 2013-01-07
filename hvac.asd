@@ -4,8 +4,7 @@
 
 (asdf:defsystem :hvac
   :serial t
-  :depends-on (:iterate
-               :alexandria
+  :depends-on (:alexandria
                :lisputils)
   :components ((:file "package")
                (:file "constants")

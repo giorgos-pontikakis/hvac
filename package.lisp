@@ -2,6 +2,5 @@
 
 (defpackage :hvac
   (:use "COMMON-LISP"
-        "ITERATE"
         "ALEXANDRIA"
         "LISPUTILS"))

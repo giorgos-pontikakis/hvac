@@ -26,10 +26,10 @@
                            (:oct 31)
                            (:nov 30)
                            (:dec 31))))
-    (iter (for (m d) in month-day-table)
-          (until (eql m month))
-          (sum d into total)
-          (finally (return (+ day total))))))
+    (loop for (m d) in month-day-table
+          until (eql m month)
+          sum d into total
+          finally (return (+ day total)))))
 
 (defun et (n-day)
   "Equation of time, returns the difference in minutes between the

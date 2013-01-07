@@ -121,9 +121,9 @@
 ;;; --- Unit names ---
 
 (defun registered-si-name (dim)
-  (iter (for i in (key *si-units* dim #'dim-equal))
-        (if (= (scale i) 1)
-            (return i))))
+  (loop for i in (key *si-units* dim #'dim-equal)
+        if (= (scale i) 1)
+          return i))
 
 (defun fundamental-si-name (dim)
   (if (null dim)
@@ -133,14 +133,14 @@
                  (setf (aref dim n) 1)
                  dim)))
         (let* ((len (length dim))
-               (lst (iter (for pow in-vector dim)
-                          (for j index-of-sequence dim)
-                          (for fu = (make-fundamental-dim j len))
-                          (if (not (= 0 pow))
-                              (collect (concatenate 'string
-                                                    (registered-si-name fu)
-                                                    (if (not (= 1 pow))
-                                                        (write-to-string pow))))))))
+               (lst (loop for pow in-vector dim
+                          for j index-of-sequence dim
+                          for fu = (make-fundamental-dim j len)
+                          when (not (= 0 pow))
+                            collect (concatenate 'string
+                                                 (registered-si-name fu)
+                                                 (if (not (= 1 pow))
+                                                     (write-to-string pow))))))
           (reduce #'(lambda (arg1 arg2)
                       (concatenate 'string arg1 "." arg2))
                   lst)))))
